@@ -29,7 +29,7 @@ func handlerUsers(s *state, cmd command) error {
 
 func handlerRegister(s *state, cmd command) error {
     if len(cmd.args) < 1 {
-        return fmt.Errorf("")
+        return fmt.Errorf("proper usage: gator register <name>")
     }
 
     _, err := s.qry.GetUser(context.Background(), cmd.args[0])
@@ -47,7 +47,7 @@ func handlerRegister(s *state, cmd command) error {
         },
     )
     if err != nil {
-        return fmt.Errorf("")
+        return fmt.Errorf("handlerRegister(%v, %v): %w", s, cmd, err)
     }
 
     err = s.cfg.SetUser(cmd.args[0])
