@@ -19,7 +19,7 @@ func handlerAgg(s *state, cmd command) error {
         return fmt.Errorf("handlerAgg(%v, %v): %w", s, cmd, err)
     }
 
-    fmt.Println(f)
+    f.printFeed()
 
     return nil
 }
@@ -49,7 +49,41 @@ func handlerAddFeed(s *state, cmd command) error {
         return fmt.Errorf("handlerAddFeed(%v, %v): %w", s, cmd, err)
     }
 
-    fmt.Println(f)
+    fmt.Println("Feed added")
+    fmt.Println("******************************")
+    printFeed(f)
 
     return nil
+}
+
+func handlerFeeds(s *state, cmd command) error {
+    feeds, err := s.qry.GetFeeds(context.Background())
+    if err != nil {
+        return fmt.Errorf("handlerFeeds(%v, %v): %w", s, cmd, err)
+    }
+
+    printFeeds(feeds)
+
+    return nil
+}
+
+func printFeeds(feeds []database.GetFeedsRow) {
+    if len(feeds) == 0 {
+        fmt.Println("no feeds added")
+        return
+    } else {
+        fmt.Printf("%d feeds found:\n", len(feeds))
+    }
+
+    for _, f := range feeds {
+        fmt.Println("******************************")
+        fmt.Printf("Feed name: %s\n", f.Name)
+        fmt.Printf("Feed url: %s\n", f.Url)
+        fmt.Printf("Feed user: %s\n", f.UserName)
+    }
+}
+
+func printFeed(f database.Feed) {
+    fmt.Printf("Feed name: %s\n", f.Name)
+    fmt.Printf("Feed url: %s\n", f.Url)
 }

@@ -56,7 +56,7 @@ func handlerRegister(s *state, cmd command) error {
     }
 
     fmt.Printf("user %s created\n", cmd.args[0])
-    fmt.Printf("%v\n", user)
+    printUser(user)
 
     return nil
 }
@@ -76,7 +76,13 @@ func handlerLogin(s *state, cmd command) error {
         return fmt.Errorf("handlerLogin(%v, %v): %w", s, cmd, err)
     }
 
-    fmt.Printf("User set: %v\n", s.cfg)
+    fmt.Printf("User set: %s\n", s.cfg)
 
     return nil
+}
+
+func printUser(u database.User) {
+    fmt.Println("******************************")
+    fmt.Printf("User id: %v\n", u.ID)
+    fmt.Printf("User name: %s\n", u.Name)
 }

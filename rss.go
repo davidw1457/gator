@@ -69,3 +69,20 @@ func unescapeFeed(f *RSSFeed) {
         )
     }
 }
+
+func (feed RSSFeed) printFeed() {
+    fmt.Printf("Feed title: %s\n", feed.Channel.Title)
+    fmt.Printf("Feed description: %s\n", feed.Channel.Description)
+    fmt.Printf("Feed link: %s\n", feed.Channel.Link)
+    for _, item := range feed.Channel.Item {
+        item.printItem()
+    }
+}
+
+func (item RSSItem) printItem() {
+    fmt.Println("******************************")
+    fmt.Printf("Item title: %s\n", item.Title)
+    fmt.Printf("Item date: %s\n", item.PubDate)
+    fmt.Printf("Item description: %s\n", item.Description)
+    fmt.Printf("Item link: %s\n", item.Link)
+}

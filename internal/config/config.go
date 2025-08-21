@@ -63,3 +63,11 @@ func getJsonPath() (string, error) {
 
     return jsonPath, nil
 }
+
+func (c *Config) String() string {
+    return fmt.Sprintf(
+        "DB URL: %s\nCurrent User: %s",
+        c.DbUrl,
+        c.CurrentUserName,
+    )
+}
