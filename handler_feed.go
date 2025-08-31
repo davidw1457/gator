@@ -142,3 +142,25 @@ func handlerFollowing(s *state, cmd command, user database.User) error {
 
 	return nil
 }
+
+func handlerUnfollow(s *state, cmd command, user database.User) error {
+	feed, err := s.qry.GetFeedByURL(context.Background(), cmd.args[0])
+	if err != nil {
+		return fmt.Errorf("handlerUnfollow: %w", err)
+	}
+
+	err = s.qry.DeleteFeedFollow(
+		context.Background(),
+		database.DeleteFeedFollowParams{
+			UserID: user.ID,
+			FeedID: feed.ID,
+		},
+	)
+	if err != nil {
+		return fmt.Errorf("handlerUnfollow: %w", err)
+	}
+
+	fmt.Printf("%s unfollowed by %s\n", feed.Name, user.Name)
+
+	return nil
+}
