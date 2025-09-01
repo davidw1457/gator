@@ -35,3 +35,16 @@ WHERE ff.user_id = $1;
 DELETE
 FROM feed_follows
 WHERE feed_id = $1 AND user_id = $2;
+
+-- name: MarkFeedFetched :exec
+UPDATE feeds
+SET last_fetched_at = $1,
+    updated_at = $2
+WHERE id = $3;
+
+-- name: GetNextFeedToFetch :one
+SELECT f.*
+FROM feeds AS f
+    INNER JOIN feed_follows AS ff ON f.id = ff.feed_id
+WHERE ff.user_id = $1
+ORDER BY last_fetched_at ASC NULLS FIRST;

@@ -2,8 +2,10 @@ package main
 
 import (
 	"context"
+	"database/sql"
 	"encoding/xml"
 	"fmt"
+	"github.com/davidw1457/gator/internal/database"
 	"html"
 	"io"
 	"net/http"
@@ -70,19 +72,50 @@ func unescapeFeed(feed *RSSFeed) {
 	}
 }
 
-func (feed RSSFeed) printFeed() {
+func (feed RSSFeed) print() {
 	fmt.Printf("Feed title: %s\n", feed.Channel.Title)
 	fmt.Printf("Feed description: %s\n", feed.Channel.Description)
 	fmt.Printf("Feed link: %s\n", feed.Channel.Link)
 	for _, item := range feed.Channel.Item {
-		item.printItem()
+		item.print()
 	}
 }
 
-func (item RSSItem) printItem() {
+func (item RSSItem) print() {
 	fmt.Println("******************************")
 	fmt.Printf("Item title: %s\n", item.Title)
-	fmt.Printf("Item date: %s\n", item.PubDate)
-	fmt.Printf("Item description: %s\n", item.Description)
-	fmt.Printf("Item link: %s\n", item.Link)
+	// fmt.Printf("Item date: %s\n", item.PubDate)
+	// fmt.Printf("Item description: %s\n", item.Description)
+	// fmt.Printf("Item link: %s\n", item.Link)
+}
+
+func scrapeFeeds(ctx context.Context, s *state, user database.User) error {
+	feed, err := s.qry.GetNextFeedToFetch(ctx, user.ID)
+	if err != nil {
+		return fmt.Errorf("scrapeFeeds: %w", err)
+	}
+
+	err = s.qry.MarkFeedFetched(
+		ctx,
+		database.MarkFeedFetchedParams{
+			LastFetchedAt: sql.NullTime{
+				Time:  time.Now(),
+				Valid: true,
+			},
+			UpdatedAt: time.Now(),
+			ID:        feed.ID,
+		},
+	)
+	if err != nil {
+		return fmt.Errorf("scrapeFeeds: %w", err)
+	}
+
+	rssFeed, err := fetchFeed(ctx, feed.Url)
+	if err != nil {
+		return fmt.Errorf("scrapeFeeds: %w", err)
+	}
+
+	rssFeed.print()
+
+	return nil
 }
