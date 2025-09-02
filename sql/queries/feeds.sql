@@ -43,8 +43,6 @@ SET last_fetched_at = $1,
 WHERE id = $3;
 
 -- name: GetNextFeedToFetch :one
-SELECT f.*
-FROM feeds AS f
-    INNER JOIN feed_follows AS ff ON f.id = ff.feed_id
-WHERE ff.user_id = $1
+SELECT *
+FROM feeds
 ORDER BY last_fetched_at ASC NULLS FIRST;

@@ -6,6 +6,7 @@ import (
 	"encoding/xml"
 	"fmt"
 	"github.com/davidw1457/gator/internal/database"
+	"github.com/google/uuid"
 	"html"
 	"io"
 	"net/http"
@@ -89,8 +90,8 @@ func (item RSSItem) print() {
 	// fmt.Printf("Item link: %s\n", item.Link)
 }
 
-func scrapeFeeds(ctx context.Context, s *state, user database.User) error {
-	feed, err := s.qry.GetNextFeedToFetch(ctx, user.ID)
+func scrapeFeeds(ctx context.Context, s *state) error {
+	feed, err := s.qry.GetNextFeedToFetch(ctx)
 	if err != nil {
 		return fmt.Errorf("scrapeFeeds: %w", err)
 	}
@@ -115,7 +116,32 @@ func scrapeFeeds(ctx context.Context, s *state, user database.User) error {
 		return fmt.Errorf("scrapeFeeds: %w", err)
 	}
 
-	rssFeed.print()
+	for _, item := range rssFeed.Channel.Item {
+		var publishedDate time.Time
+		publishedDate, err := time.Parse(time.RFC1123Z, item.PubDate)
+		if err != nil {
+			fmt.Printf("Unsupported date format: %s\n", item.PubDate)
+			continue
+		}
+		_, err = s.qry.CreatePost(
+			ctx,
+			database.CreatePostParams{
+				ID:          uuid.New(),
+				CreatedAt:   time.Now(),
+				UpdatedAt:   time.Now(),
+				Title:       item.Title,
+				Url:         item.Link,
+				Description: item.Description,
+				PublishedAt: publishedDate,
+				FeedID:      feed.ID,
+			},
+		)
+		if err != nil && err.Error() == "pq: duplicate key value violates unique constraint \"posts_url_key\"" {
+			continue
+		} else if err != nil {
+			fmt.Printf("Error inserting: %v\n", err)
+		}
+	}
 
 	return nil
 }

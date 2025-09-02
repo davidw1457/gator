@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"strconv"
 	"time"
 
 	"github.com/google/uuid"
@@ -10,7 +11,7 @@ import (
 	"github.com/davidw1457/gator/internal/database"
 )
 
-func handlerAgg(s *state, cmd command, user database.User) error {
+func handlerAgg(s *state, cmd command) error {
 	if len(cmd.args) < 1 {
 		return fmt.Errorf("proper usage: gator agg <time_between_reqs>")
 	}
@@ -20,11 +21,11 @@ func handlerAgg(s *state, cmd command, user database.User) error {
 		return fmt.Errorf("handlerAgg: %w", err)
 	}
 
-	fmt.Printf("Collection  feeds ever %s\n", cmd.args[0])
+	fmt.Printf("Collecting feeds every %s\n", cmd.args[0])
 
 	ticker := time.NewTicker(timeBetweenReqs)
 	for ; ; <-ticker.C {
-		err = scrapeFeeds(context.Background(), s, user)
+		err = scrapeFeeds(context.Background(), s)
 		if err != nil {
 			return fmt.Errorf("handlerAgg: %w", err)
 		}
@@ -168,6 +169,38 @@ func handlerUnfollow(s *state, cmd command, user database.User) error {
 	}
 
 	fmt.Printf("%s unfollowed by %s\n", feed.Name, user.Name)
+
+	return nil
+}
+
+func handlerBrowse(s *state, cmd command, user database.User) error {
+	limit := int32(2)
+	if len(cmd.args) > 0 {
+		parsedLimit, err := strconv.Atoi(cmd.args[0])
+		if err != nil {
+			fmt.Printf("Error parsing %s: %s\n", cmd.args[0], err)
+			fmt.Printf("Defaulting to limit 2")
+		}
+		limit = int32(parsedLimit)
+	}
+
+	posts, err := s.qry.GetPostsForUser(
+		context.Background(),
+		database.GetPostsForUserParams{
+			UserID: user.ID,
+			Limit:  limit,
+		},
+	)
+	if err != nil {
+		return fmt.Errorf("handlerBrowse: %w", err)
+	}
+
+	for _, post := range posts {
+		fmt.Printf("%s: %v\n", post.Title, post.PublishedAt)
+		fmt.Println(post.Url)
+		fmt.Println(post.Description)
+		fmt.Println("**********")
+	}
 
 	return nil
 }
