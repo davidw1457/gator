@@ -13,6 +13,7 @@ Use goose to run the schema updates in sql/schema/*
 ## Config file
 Create a config file named .gatorconfig.json in the root of your home
 directory. The file has the following format:
+
 `{
     "db_url":[database connection string],
     "current_user_name":[blank at start, this will be set by the application]
@@ -44,7 +45,7 @@ Show all feeds followed by current user:
 `gator following`
 
 Update all feeds:
-`gator agg <time interval>
+`gator agg <time interval>`
 
 Show posts from followed feeds:
 `gator browse [number of post to show. Default = 2]`
